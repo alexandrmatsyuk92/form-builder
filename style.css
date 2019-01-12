@@ -1,0 +1,78 @@
+.wrapper {
+    display: flex;
+    font-family: sans-serif;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.form-wrapper {
+    flex: 5;
+    display: grid;
+}
+
+.sidebar {
+    flex: 1;
+    padding: 20px;
+}
+
+.text {
+    align-self: center;
+    text-align: center;
+    width: 100%;
+}
+
+node {
+    display: grid;
+}
+
+.columns-wrapper{
+    border-bottom: 1px solid black;
+}
+
+.content-wrapper{
+    display: flex;
+    flex-direction: column;
+}
+
+.input-wrapper, .case, .textarea-wrapper{
+    flex: 1;
+    display: flex;
+}
+
+.textarea-wrapper{
+    flex-direction: column;
+}
+
+.textarea-wrapper label {
+    color: black;
+    font-weight: bold;
+    position: absolute;
+    font-size: 0.65rem;
+}
+
+.content-wrapper .input-wrapper div input, .content-wrapper .input-wrapper div textarea {
+    width: 100%;
+    min-height: 30px;
+    padding: 10px;
+    flex: 1;
+    outline: none;
+    border: none;
+}
+
+.content-wrapper .input-wrapper div input {
+    text-align: right;
+}
+
+.content-wrapper .input-wrapper div input:focus, .content-wrapper .input-wrapper div textarea:focus {
+    background-color: #d1e0ed;
+}
+
+input:focus ~ label, textarea:focus ~ label {
+    color: gray;
+}
+
+.save-btn {
+    width: 100px;
+    height: 30px;
+    margin: 30px;
+}

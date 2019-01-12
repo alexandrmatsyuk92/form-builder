@@ -1,0 +1,21 @@
+<div class="rows-wrapper" ng-style="$ctrl.getRowsStyle($ctrl.node.rows)" ng-if="$ctrl.node.rows">
+    <node ng-repeat="row in $ctrl.node.rows" node="row"></node>
+</div>
+<div class="columns-wrapper" ng-style="$ctrl.getColumnsStyle($ctrl.node.columns)" ng-if="$ctrl.node.columns">
+    <node ng-repeat="column in $ctrl.node.columns" node="column"></node>
+</div>
+<div class="content-wrapper" ng-if="$ctrl.node.content">
+    <div class="input-wrapper" ng-repeat="input in $ctrl.node.content">
+        <div ng-switch="input.type" class="case">
+            <div class="textarea-wrapper" ng-switch-when="input" drag-n-drop="{{input}}">
+                <input type="text" ng-model="input.value">
+                <label>{{input.title}}</label>
+            </div>
+            <div class="text" ng-switch-when="text">{{input.title}}</div>
+            <div class="textarea-wrapper" ng-switch-when="area" drag-n-drop="{{input}}">
+                <textarea ng-model="input.value"></textarea>
+                <label>{{input.title}}</label>
+            </div>
+        </div>
+    </div>
+</div>

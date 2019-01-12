@@ -1,0 +1,33 @@
+<html lang="en" ng-app="forms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./index.js"></script>
+    <link rel="stylesheet" type="text/css" href="./style.css"/>
+</head>
+<body ng-controller="FormController as $ctrl">
+<div class="wrapper">
+    <div class="form-wrapper">
+        <node node="$ctrl.grid"></node>
+    </div>
+    <div class="sidebar">
+        <h3>Fields</h3>
+        <ul>
+            <li>Standard set of fields available</li>
+            <li>Able to drag and drop fields on/off page</li>
+            <li>User can create new fields with data type, e.g. string/number</li>
+        </ul>
+        <h3>Rows</h3>
+        <p>Example of using Angular model view to controls row sizes
+        * Be able to change size by dragging grid lines
+        </p>
+        <input type="text" ng-repeat="row in $ctrl.grid.rows" ng-model="row.height">
+        <button class="save-btn" ng-click="$ctrl.export()">export</button>
+        <input type="file"  file-uploader/>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.js" async onload="init()"></script>
+</body>
+</html>
