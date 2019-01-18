@@ -22,11 +22,22 @@
 }
 
 node {
+    border: 0.5px solid black;
+    border-collapse: collapse;
     display: grid;
+    height: 100%;
+}
+
+fieldset {
+    border: none
+}
+
+node.active {
+    border: 1px dashed red;
 }
 
 .columns-wrapper{
-    border-bottom: 1px solid black;
+    /* border: 1px solid black; */
 }
 
 .content-wrapper{

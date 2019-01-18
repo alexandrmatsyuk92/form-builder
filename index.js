@@ -1,4 +1,10 @@
 class Node {
+  constructor($element, DService, $scope) {
+    this.$element = $element;
+    this.dService = DService;
+    this.$scope = $scope
+    $element.on('click', this.click.bind(this))
+  }
 
   getRowsStyle(rows) {
     return {
@@ -12,6 +18,51 @@ class Node {
       'display': 'grid',
       'grid-template-columns': new Array(columns.length).fill(`${100 / columns.length}%`).join(' ')
     }
+  }
+
+  click(event) {
+    this.dService.select(this.node)
+    this.$scope.$apply();
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  addRow($event) {
+    $event.preventDefault();
+    $event.stopPropagation();
+    this.node.rows = new Array(+this.rowCount).fill().map(() => ({
+      meta: { active: false },
+      columns: [{
+        meta: { active: false },
+        content: []
+      }]
+    }))
+    this.node.meta.active = false;
+    this.node.meta.style = {
+      'display': 'grid',
+      'grid-template-rows': this.node.rows.map((r) => r.height || 'auto').join(' ')
+    } 
+    delete this.node.content;
+  }
+  addColumn($event) {
+    $event.preventDefault();
+    $event.stopPropagation();
+    (this.node.rows || (this.node.rows = [])).push({
+      meta: { active: false, },
+      columns: [{
+        meta: { active: false },
+        content: this.node.content || []
+      }, ...new Array(this.colCount - 1).fill().map(() => ({
+        meta: { active: false },
+        content: []
+      }))]
+    });
+    this.node.meta.active = false;
+    this.node.rows[this.node.rows.length - 1].meta.style = {
+      'display': 'grid',
+      'grid-template-columns': new Array(this.node.rows[this.node.rows.length - 1].columns.length).fill(`${100 / this.node.rows[this.node.rows.length - 1].columns.length}%`).join(' ')
+    } 
+    delete this.node.content;
   }
 }
 
@@ -31,7 +82,7 @@ class Queue {
 
 class FormController {
   constructor(dragNDropService, $scope) {
-    this.grid = {
+    this.grid2 = {
       rows: [
         {
           columns: [
@@ -321,8 +372,10 @@ class FormController {
           height: '100px'
         }
       ],
-
     };
+    this.grid = {
+      meta: {active: false},
+    }
     dragNDropService.grid = this.grid;
     dragNDropService.scope = $scope;
   }
@@ -334,11 +387,11 @@ class FormController {
     a.download = 'form.json';
     a.click();
   }
-
 }
 
 class DService {
-
+  constructor() {
+  }
   find(node, hash) {
     const queue = new Queue();
     let currentTree = { node };
@@ -368,6 +421,12 @@ class DService {
     this._scope = scope
   }
 
+  select(node) {
+    this.selectedNode && this.selectedNode.meta && (this.selectedNode.meta.active = false);
+    this.selectedNode = node;
+    this.selectedNode.meta.active = true;
+  }
+
   change() {
     const dragEl = this.find(this.gridEl, this.dragElement.key);
     const dropEl = this.find(this.gridEl, this.dropElement.key);
@@ -381,12 +440,45 @@ function init() {
   const app = angular.module('forms', []);
   app.controller('FormController', FormController);
   app.component('node', {
-    templateUrl: './node.html',
+    template: `<div class="rows-wrapper" ng-style="$ctrl.node.meta.style" ng-if="$ctrl.node.rows">
+                  <node ng-repeat="row in $ctrl.node.rows" node="row" ng-class="{'active': row.meta.active}"></node>
+              </div>{{$ctrl.resize}}
+              <div class="columns-wrapper" ng-style="$ctrl.node.meta.style" ng-if="$ctrl.node.columns">
+                  <node ng-repeat="column in $ctrl.node.columns" node="column" ng-class="{'active': column.meta.active}"></node>
+              </div>
+              <div class="content-wrapper" ng-if="$ctrl.node.content">
+                  <div class="input-wrapper" ng-repeat="input in $ctrl.node.content">
+                      <div ng-switch="input.type" class="case">
+                          <div class="textarea-wrapper" ng-switch-when="input">
+                              <input type="text" ng-model="input.value">
+                              <label>{{input.title}}</label>
+                          </div>
+                          <div class="text" ng-switch-when="text">{{input.title}}</div>
+                          <div class="textarea-wrapper" ng-switch-when="area">
+                              <textarea ng-model="input.value"></textarea>
+                              <label>{{input.title}}</label>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <form name="myForm" ng-init="$ctrl.rowSw = { value: 'row' }" ng-if="$ctrl.node.meta.active" on-click="($event) => $event.preventDefault()">
+                <fieldset>
+                  <button ng-click="$ctrl.addRow($event)">add row</button><input ng-model="$ctrl.rowCount">
+                </fieldset>
+                <fieldset>
+                  <button ng-click="$ctrl.addColumn($event)">add column</button><input ng-model="$ctrl.colCount">
+                </fieldset>
+              </form>`,
     controller: Node,
     bindings: {
-      node: '='
+      node: '=',
+      resize: '<'
     }
   });
+
+  app.directive('resizable', () => new Resizable())
+
+  Node.$inject = ['$element', 'dragNDropService', '$scope']
 
   app.directive('dragNDrop', function (dragNDropService) {
     return function (scope, el) {
