@@ -54,7 +54,12 @@ class ColObj {
 }
 
 class NodeControls {
-
+  constructor($scope) {
+    this.$scope = $scope
+  }
+  $onInit() {
+    console.log(this)
+  }
 }
 
 class Node {
@@ -434,6 +439,7 @@ class FormController {
       ],
     };
     this.grid = new ColObj
+    this.grid.RowObj
     dragNDropService.grid = this.grid;
     dragNDropService.scope = $scope;
   }
@@ -538,10 +544,12 @@ function init() {
                 row {{$index}}
                 <button ng-click="$ctrl.node.deleteRow($index)">delete row</button>
                 <button ng-click="row.addCol(2)">add col</button>
-                <div ng-repeat="col in row.columns track by $index">
+                <div class="pad" ng-repeat="col in row.columns track by $index">
                   col {{$index}}
-                  <button ng-click="col.addRow(2)">add row</button>
-                  <button ng-if="row.columns.length !== 1" ng-click="row.deleteCol($index)">delete col</button>
+                  <span>
+                    <button ng-if="$ctrl.$scope.$parent.$parent.$parent == null" ng-click="col.addRow(2)">add row</button>
+                    <button ng-if="row.columns.length !== 1" ng-click="row.deleteCol($index)">delete col</button>
+                  </span>
                   <node-controls node="col"/>
                 </div>
             </div>`,
@@ -554,6 +562,8 @@ function init() {
   app.directive('resizable', () => new Resizable())
 
   Node.$inject = ['$element', 'dragNDropService', '$scope']
+  NodeControls.$inject = ['$scope']
+
 
   app.directive('dragNDrop', function (dragNDropService) {
     return function (scope, el) {

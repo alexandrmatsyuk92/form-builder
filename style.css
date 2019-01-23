@@ -10,6 +10,10 @@
     display: grid;
 }
 
+.pad {
+    padding-left: 20px;
+}
+
 .sidebar {
     padding: 20px;
 }
