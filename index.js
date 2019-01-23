@@ -1,3 +1,62 @@
+class RowObj {
+  constructor() {
+    return Object.assign(this, {
+      meta: { active: false },
+      columns: [new ColObj()]
+    })
+  }
+  
+  deleteCol($index) {
+    this.columns.splice($index, 1)
+    this.meta.style = this.getColumnsStyle(this.columns)
+  }
+
+  addCol(count) {
+    this.columns.push(...new Array(count - 1).fill().map(() => new ColObj()));
+    this.meta.active = false;
+    this.meta.style = this.getColumnsStyle(this.columns)
+  }
+
+  getColumnsStyle(columns) {
+    return {
+      'display': 'grid',
+      'grid-template-columns': new Array(columns.length).fill(`${100 / columns.length}%`).join(' ')
+    }
+  }
+}
+
+class ColObj {
+  constructor() {
+    return Object.assign(this, {
+      meta: { active: false },
+      rows: []
+    })
+  }
+
+  addRow(rowCount) {
+    delete this.content;
+    (this.rows || (this.rows = [])).push(...new Array(rowCount).fill().map(() => new RowObj()))
+    this.meta.active = false;
+    this.meta.style = this.getRowsStyle(this.rows);
+  }
+
+  deleteRow($index) {
+    this.rows.splice($index, 1)
+    this.meta.style = this.getRowsStyle(this.rows)
+  }
+
+  getRowsStyle(rows) {
+    return {
+      'display': 'grid',
+      'grid-template-rows': rows.map((r) => r.height || 'auto').join(' ')
+    }
+  }
+}
+
+class NodeControls {
+
+}
+
 class Node {
   constructor($element, DService, $scope) {
     this.$element = $element;
@@ -44,6 +103,7 @@ class Node {
     } 
     delete this.node.content;
   }
+
   addColumn($event) {
     $event.preventDefault();
     $event.stopPropagation();
@@ -373,11 +433,16 @@ class FormController {
         }
       ],
     };
-    this.grid = {
-      meta: {active: false},
-    }
+    this.grid = new ColObj
     dragNDropService.grid = this.grid;
     dragNDropService.scope = $scope;
+  }
+
+  setGrid(node, rows = 1, cols = 0) {
+    Object.assign(node, new ColObj)
+    node.addRow(rows)
+    node.rows.forEach((n) => n.addCol(cols))
+    console.log(node)
   }
 
   export() {
@@ -440,13 +505,13 @@ function init() {
   const app = angular.module('forms', []);
   app.controller('FormController', FormController);
   app.component('node', {
-    template: `<div class="rows-wrapper" ng-style="$ctrl.node.meta.style" ng-if="$ctrl.node.rows">
+    template: `<div class="rows-wrapper" ng-style="$ctrl.node.meta.style" ng-show="$ctrl.node.rows">
                   <node ng-repeat="row in $ctrl.node.rows" node="row" ng-class="{'active': row.meta.active}"></node>
               </div>{{$ctrl.resize}}
-              <div class="columns-wrapper" ng-style="$ctrl.node.meta.style" ng-if="$ctrl.node.columns">
+              <div class="columns-wrapper" ng-style="$ctrl.node.meta.style" ng-show="$ctrl.node.columns">
                   <node ng-repeat="column in $ctrl.node.columns" node="column" ng-class="{'active': column.meta.active}"></node>
               </div>
-              <div class="content-wrapper" ng-if="$ctrl.node.content">
+              <div class="content-wrapper" ng-show="$ctrl.node.content">
                   <div class="input-wrapper" ng-repeat="input in $ctrl.node.content">
                       <div ng-switch="input.type" class="case">
                           <div class="textarea-wrapper" ng-switch-when="input">
@@ -461,18 +526,28 @@ function init() {
                       </div>
                   </div>
               </div>
-              <form name="myForm" ng-init="$ctrl.rowSw = { value: 'row' }" ng-if="$ctrl.node.meta.active" on-click="($event) => $event.preventDefault()">
-                <fieldset>
-                  <button ng-click="$ctrl.addRow($event)">add row</button><input ng-model="$ctrl.rowCount">
-                </fieldset>
-                <fieldset>
-                  <button ng-click="$ctrl.addColumn($event)">add column</button><input ng-model="$ctrl.colCount">
-                </fieldset>
-              </form>`,
+              `,
     controller: Node,
     bindings: {
       node: '=',
       resize: '<'
+    }
+  });
+  app.component('nodeControls', {
+    template: `<div ng-repeat="row in $ctrl.node.rows track by $index">
+                row {{$index}}
+                <button ng-click="$ctrl.node.deleteRow($index)">delete row</button>
+                <button ng-click="row.addCol(2)">add col</button>
+                <div ng-repeat="col in row.columns track by $index">
+                  col {{$index}}
+                  <button ng-click="col.addRow(2)">add row</button>
+                  <button ng-if="row.columns.length !== 1" ng-click="row.deleteCol($index)">delete col</button>
+                  <node-controls node="col"/>
+                </div>
+            </div>`,
+    controller: NodeControls,
+    bindings: {
+      node: '=',
     }
   });
 
@@ -508,5 +583,4 @@ function init() {
   app.service('dragNDropService', function () {
     return this.instance || (this.instance = new DService(), this.instance);
   });
-
 }
