@@ -1,8 +1,8 @@
 class RowObj {
   constructor() {
     return Object.assign(this, {
-      meta: { active: false },
-      columns: [new ColObj()]
+      meta: { active: false, style: this.getColumnsStyle(this.columns) },
+      columns: []
     })
   }
   
@@ -12,23 +12,25 @@ class RowObj {
   }
 
   addCol(count) {
-    this.columns.push(...new Array(count - 1).fill().map(() => new ColObj()));
+    this.columns.push(...new Array(count).fill().map(() => new ColObj()));
     this.meta.active = false;
     this.meta.style = this.getColumnsStyle(this.columns)
   }
 
-  getColumnsStyle(columns) {
+  getColumnsStyle() {
     return {
-      'display': 'grid',
-      'grid-template-columns': new Array(columns.length).fill(`${100 / columns.length}%`).join(' ')
-    }
+      'display': 'flex',
+      'flex-direction': 'row',
+      'height': '100%',
+      'width': '100%',
+    };
   }
 }
 
 class ColObj {
   constructor() {
     return Object.assign(this, {
-      meta: { active: false },
+      meta: { active: false, style: this.getRowsStyle() },
       rows: []
     })
   }
@@ -45,11 +47,13 @@ class ColObj {
     this.meta.style = this.getRowsStyle(this.rows)
   }
 
-  getRowsStyle(rows) {
+  getRowsStyle() {
     return {
-      'display': 'grid',
-      'grid-template-rows': rows.map((r) => r.height || 'auto').join(' ')
-    }
+      'display': 'flex',
+      'flex-direction': 'column',
+      'height': '100%',
+      'width': '100%',
+    };
   }
 }
 
@@ -439,7 +443,7 @@ class FormController {
       ],
     };
     this.grid = new ColObj
-    this.grid.RowObj
+    this.grid.rows.push(new RowObj)
     dragNDropService.grid = this.grid;
     dragNDropService.scope = $scope;
   }
@@ -547,15 +551,16 @@ function init() {
                 <div class="pad" ng-repeat="col in row.columns track by $index">
                   col {{$index}}
                   <span>
-                    <button ng-if="$ctrl.$scope.$parent.$parent.$parent == null" ng-click="col.addRow(2)">add row</button>
+                    <button ng-if="!$ctrl.lock" ng-click="col.addRow(1)">add row</button>
                     <button ng-if="row.columns.length !== 1" ng-click="row.deleteCol($index)">delete col</button>
                   </span>
-                  <node-controls node="col"/>
+                  <node-controls node="col" lock="true"/>
                 </div>
             </div>`,
     controller: NodeControls,
     bindings: {
       node: '=',
+      lock: '<'
     }
   });
 

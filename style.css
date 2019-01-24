@@ -27,9 +27,11 @@
 node {
     border: 0.5px solid black;
     border-collapse: collapse;
-    display: grid;
+    display: flex;
+    flex-direction: row;
     height: 100%;
-}
+    width: 100%;
+  }
 
 node-controls {
     display: block;
